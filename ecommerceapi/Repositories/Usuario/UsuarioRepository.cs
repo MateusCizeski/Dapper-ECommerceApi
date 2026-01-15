@@ -68,9 +68,37 @@ namespace ecommerceapi.Repositories
 
         public void Update(Usuario usuario) 
         {
-            string sql = "UPDATE Usuarios SET Nome = @Nome, Email = @Email, Sexo = @Sexo, RG = @RG, CPF = @CPF, NomeMae = @NomeMae, SituacaoCadastro = @SituacaoCadastro, DataCadastro = @DataCadastro WHERE Id = @Id";
-       
-            _dbConnection.Execute(sql, usuario);
+            _dbConnection.Open();
+            var transaction = _dbConnection.BeginTransaction();
+
+            try
+            {
+                string sql = "UPDATE Usuarios SET Nome = @Nome, Email = @Email, Sexo = @Sexo, RG = @RG, CPF = @CPF, NomeMae = @NomeMae, SituacaoCadastro = @SituacaoCadastro, DataCadastro = @DataCadastro WHERE Id = @Id";
+                _dbConnection.Execute(sql, usuario);
+
+                if(usuario.Contato != null)
+                {
+                    string sqlcontato = "UPDATE Contatos SET UsuarioId = @UsuarioId, Telefone = @Telefone, Celular = @Celular WHERE Id = @Id;";
+                    _dbConnection.Execute(sqlcontato, usuario.Contato);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            finally
+            {
+                _dbConnection.Close();
+            }
         }
 
         public void Delete(int id)
