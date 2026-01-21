@@ -105,6 +105,15 @@ namespace ecommerceapi.Repositories
                     }
                 }
 
+                if(usuario.Departamentos != null && usuario.Departamentos.Count > 0)
+                {
+                    foreach (var departamento in usuario.Departamentos)
+                    {
+                        string sqlDepartamentos = "INSERT INTO UsuariosDepartamentos (UsuarioId, DepartamentoId) VALUES (@UsuarioId, @DepartamentoId)";
+                       _dbConnection.Execute(sqlDepartamentos, new { UsuarioId = usuario.Id, DepartamentoId = departamento.Id }, transaction);
+                    }
+                } 
+
                 transaction.Commit();
             }
             catch(Exception)
@@ -151,6 +160,18 @@ namespace ecommerceapi.Repositories
                         string sqlEndereco = "INSERT INTO EnderecosEntrega (UsuarioId, NomeEndereco, CEP, Estado, Cidade, Bairro, Endereco, Numero, Complemento) VALUES (@UsuarioId, @NomeEndereco, @CEP, @Estado, @Cidade, @Bairro, @Endereco, @Numero, @Complemento); SELECT CAST(SCOPE_IDENTITY() AS INT)";
                         usuario.Id = _dbConnection.Query<int>(sqlEndereco, usuario.EnderecoEntregas, transaction).Single();
 
+                    }
+                }
+
+                string sqlDeleteUsuariosDepartamentos = "DELETE FROM UsuariosDepartamentos WHERE UsuarioId = @Id";
+                _dbConnection.Execute(sqlDeleteUsuariosDepartamentos, usuario, transaction);
+
+                if (usuario.Departamentos != null && usuario.Departamentos.Count > 0)
+                {
+                    foreach (var departamento in usuario.Departamentos)
+                    {
+                        string sqlDepartamentos = "INSERT INTO UsuariosDepartamentos (UsuarioId, DepartamentoId) VALUES (@UsuarioId, @DepartamentoId)";
+                        _dbConnection.Execute(sqlDepartamentos, new { UsuarioId = usuario.Id, DepartamentoId = departamento.Id }, transaction);
                     }
                 }
 
